@@ -156,6 +156,26 @@ define BuildFirmware/ALL5002/initramfs
 	$(call BuildFirmware/Generic/initramfs,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_allnet_all5002)))
 endef
 
+mtdlayout_asl26555=192k(u-boot)ro,64k(u-boot-env)ro,64k(factory)ro,896k(kernel),14976k(rootfs),15872k@0x50000(linux),64k@0xff0000(devdata)ro,64k@0xfd0000(cert)ro,64k@0xfe0000(langpack)ro
+
+define BuildFirmware/asl26555
+	$(call BuildFirmware/Generic,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555)),917504,15335424,$(7),$(8))
+endef
+
+define BuildFirmware/asl26555/initramfs
+	$(call BuildFirmware/Generic/initramfs,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555)))
+endef
+
+mtdlayout_asl26555-8M=192k(u-boot)ro,64k(devdata)ro,64k(rgdb)ro,896k(kernel),6848k(rootfs), 64k(cert)ro,64k(langpack)ro,7744k@0x50000(linux)
+
+define BuildFirmware/asl26555-8M
+	$(call BuildFirmware/Generic,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555-8M)),917504,7012352,$(7),$(8))
+endef
+
+define BuildFirmware/asl26555-8M/initramfs
+	$(call BuildFirmware/Generic/initramfs,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555-8M)))
+endef
+
 mtdlayout_argus_atp52b=192k(bootloader)ro,64k(config),64k(factory),1152k(kernel),6656k(rootfs),7808k@0x50000(firmware)
 mtd_argus_atp52b_kernel_part_size=1179648
 mtd_argus_atp52b_rootfs_part_size=6815744
@@ -422,6 +442,8 @@ define BuildFirmware/MZKW300NH2/initramfs
 	$(call BuildFirmware/Generic/initramfs,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_mzkw300nh2)))
 endef
 
+
+
 #
 # Templates
 #
@@ -497,6 +519,11 @@ endef
 
 define Image/Build/Profile/ARGUS_ATP52B
 	$(call Image/Build/Template/$(fs_squash)/$(1),ARGUS_ATP52B,argus_atp52b,ARGUS_ATP52B)
+endef
+
+define Image/Build/Profile/ASL26555
+	$(call Image/Build/Template/$(fs_squash)/$(1),asl26555,asl26555,ASL26555,ttyS1,57600,spi)
+	$(call Image/Build/Template/$(fs_squash)/$(1),asl26555-8M,asl26555-8M,ASL26555,ttyS1,57600,spi)
 endef
 
 define Image/Build/Profile/BC2
@@ -654,6 +681,7 @@ define Image/Build/Profile/Default
 	$(call Image/Build/Profile/ALL02393G,$(1))
 	$(call Image/Build/Profile/ALL0256N,$(1))
 	$(call Image/Build/Profile/ALL5002,$(1))
+	$(call Image/Build/Profile/ASL26555,$(1))
 	$(call Image/Build/Profile/ARGUS_ATP52B,$(1))
 	$(call Image/Build/Profile/BC2,$(1))
 	$(call Image/Build/Profile/BROADWAY,$(1))

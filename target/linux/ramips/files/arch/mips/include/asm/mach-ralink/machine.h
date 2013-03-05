@@ -40,6 +40,7 @@ enum ramips_mach_type {
 	RAMIPS_MACH_3G300M,		/* Tenda 3G300M */
 	RAMIPS_MACH_ALL0239_3G,		/* ALL0239-3G */
 	RAMIPS_MACH_ARGUS_ATP52B,	/* Argus ATP-52B */
+	RAMIPS_MACH_ASL26555,		/* Alpha ASL26555 */
 	RAMIPS_MACH_BC2,		/* NexAira BC2 */
 	RAMIPS_MACH_BR6425,		/* Edimax BR-6425 */
 	RAMIPS_MACH_BROADWAY,		/* Hauppauge Broadway */
