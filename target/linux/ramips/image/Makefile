@@ -166,7 +166,7 @@ define BuildFirmware/asl26555/initramfs
 	$(call BuildFirmware/Generic/initramfs,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555)))
 endef
 
-mtdlayout_asl26555-8M=192k(u-boot)ro,64k(devdata)ro,64k(rgdb)ro,896k(kernel),6848k(rootfs), 64k(cert)ro,64k(langpack)ro,7744k@0x50000(linux)
+mtdlayout_asl26555-8M=192k(u-boot)ro,64k(devdata)ro,64k(rgdb)ro,896k(kernel),6848k(rootfs),64k(cert)ro,64k(langpack)ro,7744k@0x50000(linux)
 
 define BuildFirmware/asl26555-8M
 	$(call BuildFirmware/Generic,$(1),$(2),$(call mkcmdline,$(3),$(4),$(5)) $(call mkmtd/$(6),$(mtdlayout_asl26555-8M)),917504,7012352,$(7),$(8))
