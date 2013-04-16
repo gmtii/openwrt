@@ -18,6 +18,10 @@
 #include <asm/mach-ralink/dev-gpio-leds.h>
 #include <asm/mach-ralink/rt305x.h>
 #include <asm/mach-ralink/rt305x_regs.h>
+//#include <asm/sizes.h>
+#include <linux/i2c.h>
+#include <linux/i2c-gpio.h>
+
 
 #include "devices.h"
 
@@ -92,7 +96,7 @@ static struct gpio_led asl26555_leds_gpio[] __initdata = {
 
 static void __init asl26555_init(void)
 {
-	rt305x_gpio_init((RT305X_GPIO_MODE_GPIO << RT305X_GPIO_MODE_UART0_SHIFT) | RT305X_GPIO_MODE_SDRAM);
+	rt305x_gpio_init((RT305X_GPIO_MODE_GPIO << RT305X_GPIO_MODE_UART0_SHIFT) | RT305X_GPIO_MODE_I2C);
 	rt305x_register_spi(asl26555_spi_slave_info,
 			    ARRAY_SIZE(asl26555_spi_slave_info));
 	rt305x_esw_data.vlan_config = RT305X_ESW_VLAN_CONFIG_WLLLL;
@@ -105,6 +109,7 @@ static void __init asl26555_init(void)
 	rt305x_register_wifi();
 	rt305x_register_wdt();
 	rt305x_register_usb();
+	rt305x_register_i2c();
 }
 
 MIPS_MACHINE(RAMIPS_MACH_ASL26555, "ASL26555", "Alpha ASL26555",

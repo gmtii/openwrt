@@ -12,6 +12,7 @@
 #include <linux/platform_device.h>
 #include <linux/err.h>
 #include <linux/clk.h>
+#include <linux/i2c-gpio.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/physmap.h>
 #include <linux/spi/spi.h>
@@ -258,6 +259,33 @@ void __init rt305x_register_wdt(void)
 	rt305x_sysc_wr(t, SYSC_REG_SYSTEM_CONFIG);
 
 	platform_device_register(&rt305x_wdt_device);
+}
+
+static struct i2c_gpio_platform_data rt305x_i2c_pdata = {
+       .sda_pin                = RT305X_GPIO_I2C_SD,
+       .scl_pin                = RT305X_GPIO_I2C_SCLK,
+       .sda_is_open_drain      = 0,
+       .scl_is_open_drain      = 0,
+       .udelay                 = 10,
+};
+
+static struct platform_device rt305x_i2c_device = {
+       .name           = "i2c-gpio",
+       .id             = 0,
+       .dev            = {
+               .platform_data = &rt305x_i2c_pdata,
+       },
+};
+
+void __init rt305x_register_i2c(void)
+{
+       /*
+        * There is even a dedicated i2c controller block, but it is probably
+        * not worth implementing support for the minimal speed gain.
+        * Just use the generic linux bitbanging and register the necessary
+        * platform data for the default I2C pin mapping the HW would use.
+        */
+       platform_device_register(&rt305x_i2c_device);
 }
 
 static struct resource rt305x_spi_resources[] = {

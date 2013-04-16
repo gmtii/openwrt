@@ -23,6 +23,7 @@ extern struct rt305x_esw_platform_data rt305x_esw_data;
 
 void rt305x_register_flash(unsigned int id);
 void rt305x_register_ethernet(void);
+void rt305x_register_i2c(void);
 void rt305x_register_wifi(void);
 void rt305x_register_wdt(void);
 void rt305x_register_spi(struct spi_board_info *info, int n);
