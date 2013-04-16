@@ -1,0 +1,162 @@
+--- a/configure
++++ b/configure
+@@ -5717,17 +5717,17 @@
+ done
+ 
+ 
+-# check for libdpf libs
+-for ac_header in libdpf/libdpf.h
++# check for dpf libs
++for ac_header in dpf.h
+ do :
+-  ac_fn_c_check_header_mongrel "$LINENO" "libdpf/libdpf.h" "ac_cv_header_libdpf_libdpf_h" "$ac_includes_default"
+-if test "x$ac_cv_header_libdpf_libdpf_h" = xyes; then :
++  ac_fn_c_check_header_mongrel "$LINENO" "dpf.h" "ac_cv_header_dpf_h" "$ac_includes_default"
++if test "x$ac_cv_header_dpf_h" = x""yes; then :
+   cat >>confdefs.h <<_ACEOF
+ #define HAVE_LIBDPF_LIBDPF_H 1
+ _ACEOF
+- has_libdpf="true"
++ has_dpf="true"
+ else
+-  has_libdpf="false"
++  has_dpf="false"
+ fi
+ 
+ done
+@@ -6633,16 +6633,16 @@
+ fi
+ 
+ if test "$DPF" = "yes"; then
+-   if test "$has_libdpf" = "true"; then
++   if test "$has_dpf" = "true"; then
+       GRAPHIC="yes"
+       DRIVERS="$DRIVERS drv_dpf.o"
+-      DRVLIBS="$DRVLIBS -Llibdpf -ldpf -lusb"
++      DRVLIBS="$DRVLIBS -L/usr/local/lib -ldpf -lusb"
+ 
+ $as_echo "#define WITH_DPF 1" >>confdefs.h
+ 
+    else
+-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libdpf.h not found: DPF driver disabled" >&5
+-$as_echo "$as_me: WARNING: libdpf.h not found: DPF driver disabled" >&2;}
++      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dpf.h not found: DPF driver disabled" >&5
++$as_echo "$as_me: WARNING: dpf.h not found: DPF driver disabled" >&2;}
+    fi
+ fi
+ 
+--- a/configure.in
++++ b/configure.in
+@@ -88,7 +88,7 @@
+ AC_CHECK_HEADERS(st2205.h, [has_st2205="true"], [has_st2205="false"])
+ 
+ # check for libdpf libs
+-AC_CHECK_HEADERS(libdpf/libdpf.h, [has_libdpf="true"], [has_libdpf="false"])
++AC_CHECK_HEADERS(dpf.h, [has_dpf="true"], [has_dpf="false"])
+ 
+ # check for vncserver libs
+ AC_CHECK_HEADERS(rfb/rfb.h, [has_vncserverlib="true"], [has_vncserverlib="false"])
+--- a/drivers.m4
++++ b/drivers.m4
+@@ -378,13 +378,13 @@
+ fi
+ 
+ if test "$DPF" = "yes"; then
+-   if test "$has_libdpf" = "true"; then
++   if test "$has_dpf" = "true"; then
+       GRAPHIC="yes"
+       DRIVERS="$DRIVERS drv_dpf.o"
+-      DRVLIBS="$DRVLIBS -Llibdpf -ldpf -lusb"
++      DRVLIBS="$DRVLIBS -L/usr/local/lib -ldpf -lusb"
+       AC_DEFINE(WITH_DPF,1,[DPF driver])
+    else
+-      AC_MSG_WARN(libdpf.h not found: DPF driver disabled)
++      AC_MSG_WARN(dpf.h not found: DPF driver disabled)
+    fi
+ fi
+ 
+--- a/drv_dpf.c
++++ b/drv_dpf.c
+@@ -46,7 +46,7 @@
+ #include <string.h>
+ #include <errno.h>
+ 
+-#include <libdpf/libdpf.h>
++#include <dpf.h>
+ 
+ #include "debug.h"
+ #include "cfg.h"
+@@ -72,6 +72,8 @@
+ {
+     int error;
+     char *dev;
++    int i;
++    DPFValue val;
+ 
+     // Currently, the Port specification is unused.
+ 
+@@ -81,11 +83,24 @@
+ 	return -1;
+     }
+ 
+-    error = dpf_open(NULL, &g_h);
++    error = dpf_open(dev, &g_h);
+     if (error < 0) {
+ 	error("dpf: cannot open dpf device %s", dev);
+ 	return -1;
+     }
++    
++    val.type = TYPE_INTEGER;
++    
++    if (cfg_number(section, "Orientation", 0, 0, 3, &i) > 0) {
++		val.value.integer = i;
++		dpf_setproperty(g_h, PROPERTY_ORIENTATION, &val);
++	}
++
++    if (cfg_number(section, "Backlight", 0, 0, 7, &i) > 0) {
++		val.value.integer = i;
++		dpf_setproperty(g_h, PROPERTY_BRIGHTNESS, &val);
++    }
++    
+ 
+     return 0;
+ }
+@@ -107,7 +122,6 @@
+ {
+     int r, c;
+     short rect[4];
+-    unsigned long i;
+     RGBA p;
+     unsigned char *pix;
+ 
+@@ -145,12 +159,6 @@
+ 	return -1;
+     }
+ 
+-    /* Fixme: provider other fonts someday... */
+-    /* Overridden - we have scaled the textout drawing */
+-/*  if (XRES != 6 && YRES != 8) {
+-	error("%s: bad Font '%s' from %s (only 6x8 at the moment)", Name, s, cfg_source());
+-	return -1;
+-    } */
+ 
+     /* we dont want fonts below 6 width */
+     if (XRES < 6) {
+@@ -185,10 +193,13 @@
+ 
+ static void plugin_backlight(RESULT * result, RESULT * arg1)
+ {
+-    int bl_on;
+-    bl_on = (R2N(arg1) == 0 ? 0 : 1);
+-    dpf_backlight(g_h, bl_on);
+-    SetResult(&result, R_NUMBER, &bl_on);
++    DPFValue val;
++
++    val.type = TYPE_INTEGER;
++    val.value.integer = R2N(arg1);
++    printf("Setting brightness...\n");
++    dpf_setproperty(g_h, PROPERTY_BRIGHTNESS, &val);
++    SetResult(&result, R_NUMBER, &val.value.integer);
+ }
+ 
+ 

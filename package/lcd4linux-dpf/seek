@@ -1,0 +1,3 @@
+for i in *; do
+  sed -i 's/libusb-compat/libusb-compat/' $i
+done
